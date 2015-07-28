@@ -19,6 +19,7 @@ import retrofit.RetrofitError;
 import retrofit.client.Response;
 
 /*
+RETROFIT DOC :http://square.github.io/retrofit/
 * STUDY URL :http://themakeinfo.com/2015/04/retrofit-android-tutorial/
 * */
 

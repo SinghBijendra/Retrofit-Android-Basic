@@ -9,14 +9,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.makeinfo.flowerpi.API.gitapi;
 import com.makeinfo.flowerpi.model.gitmodel;
+import com.makeinfo.flowerpi.API.mylogin;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 
 import retrofit.Callback;
 import retrofit.RestAdapter;
 import retrofit.RetrofitError;
 import retrofit.client.Response;
+//import
 
 /*
 RETROFIT DOC :http://square.github.io/retrofit/
@@ -30,6 +36,7 @@ public class MainActivity extends ActionBarActivity {
     EditText edit_user;
     ProgressBar pbar;
     String API = "https://api.github.com";
+    String LoginAPI = "http://app2.astrosage.com/astrosage-xml/userlogincheckv2.asp?UserId=bijendrasingh&Password=bijendra123";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,7 +47,7 @@ public class MainActivity extends ActionBarActivity {
         edit_user = (EditText) findViewById(R.id.edit);
         pbar = (ProgressBar) findViewById(R.id.pb);
         pbar.setVisibility(View.INVISIBLE);
-        click.setOnClickListener(new View.OnClickListener() {
+       /* click.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String user = edit_user.getText().toString();
@@ -63,9 +70,82 @@ public class MainActivity extends ActionBarActivity {
                     }
                 });
             }
+        });*/
+
+        click.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showLogin();
+            }
         });
     }
 
+    private void showLogin()
+    {
+        pbar.setVisibility(View.VISIBLE);
+        RestAdapter restAdapter = new RestAdapter.Builder()
+                .setEndpoint(LoginAPI).build();
+      //  myLogin myLogin1=restAdapter.create(myLogin.class);
+        mylogin ml=restAdapter.create(mylogin.class);
+        ml.getLogin(new Callback<Response>() {
+            @Override
+            public void success(Response response, Response response2) {
+               // response.getBody()
+                BufferedReader reader = null;
+                StringBuilder sb = new StringBuilder();
+                try {
+
+                    reader = new BufferedReader(new InputStreamReader(response.getBody().in()));
+
+                    String line;
+
+                    try {
+                        while ((line = reader.readLine()) != null) {
+                            sb.append(line);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+
+                String result = sb.toString();
+                tv.setText(result);
+                pbar.setVisibility(View.INVISIBLE);
+               // Toast.makeText(MainActivity.this,result,Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void failure(RetrofitError error) {
+                tv.setText(error.getMessage());
+                pbar.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
+  private void showGiHubData()
+  {
+      String user = edit_user.getText().toString();
+      pbar.setVisibility(View.VISIBLE);
+      RestAdapter restAdapter = new RestAdapter.Builder()
+              .setEndpoint(API).build();
+      gitapi git = restAdapter.create(gitapi.class);
+
+      git.getFeed(user,new Callback<gitmodel>() {
+          @Override
+          public void success(gitmodel gitmodel, Response response) {
+              tv.setText("Github Name :"+gitmodel.getName()+"\nWebsite :"+gitmodel.getBlog()+"\nCompany Name :"+gitmodel.getCompany());
+              pbar.setVisibility(View.INVISIBLE);
+          }
+
+          @Override
+          public void failure(RetrofitError error) {
+              tv.setText(error.getMessage());
+              pbar.setVisibility(View.INVISIBLE);
+          }
+      });
+  }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
